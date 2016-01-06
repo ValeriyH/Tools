@@ -2,17 +2,16 @@
     CONSOLE APPLICATION : Unique Project Overview
 ========================================================================
 
-AppWizard has created this Unique application for you.
-
-This file contains a summary of what you will find in each of the files that
-make up your Unique application.
-
+    This tool check what all lines in the file are unique. All non-unique lines printed.
+    Error level
+        set to 0 if all lines are unique
+        set to 1 if not all arguments is set or fail to open file
+        set to 2 if some lines are not unique
+        
+    Usage: Unique <filename>
 
 Unique.vcxproj
-    This is the main project file for VC++ projects generated using an Application Wizard.
-    It contains information about the version of Visual C++ that generated the file, and
-    information about the platforms, configurations, and project features selected with the
-    Application Wizard.
+    This is the main project file for VC++ 2015 projects.
 
 Unique.vcxproj.filters
     This is the filters file for VC++ projects generated using an Application Wizard. 
@@ -31,10 +30,5 @@ StdAfx.h, StdAfx.cpp
     These files are used to build a precompiled header (PCH) file
     named Unique.pch and a precompiled types file named StdAfx.obj.
 
-/////////////////////////////////////////////////////////////////////////////
-Other notes:
-
-AppWizard uses "TODO:" comments to indicate parts of the source code you
-should add to or customize.
 
 /////////////////////////////////////////////////////////////////////////////
