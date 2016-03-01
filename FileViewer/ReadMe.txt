@@ -2,11 +2,10 @@
     WIN32 APPLICATION : FileViewer Project Overview
 ========================================================================
 
-AppWizard has created this FileViewer application for you.
+FileViewer opens file in readonly mode with full sharing access to file.
+It is monitor opened file changes and updates loaded data synchronosly.
 
-This file contains a summary of what you will find in each of the files that
-make up your FileViewer application.
-
+TODO: See tasks in GitHub
 
 FileViewer.vcxproj
     This is the main project file for VC++ projects generated using an Application Wizard.
