@@ -220,7 +220,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         HWND hEdit;
 
         //TODO Create own Edit control to work with big text sizes
-        hEdit = CreateWindowEx(WS_EX_CLIENTEDGE, L"EDIT", L"",
+        //Use ANSI control version
+        hEdit = CreateWindowExA(WS_EX_CLIENTEDGE, "EDIT", "",
             WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL | ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL,
             0, 0, 100, 100, hWnd, (HMENU)IDC_MAIN_EDIT, GetModuleHandle(NULL), NULL);
         if (hEdit == NULL)
