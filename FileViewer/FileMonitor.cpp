@@ -47,7 +47,6 @@ void FileMonitor::WorkerThread()
     //TODO Read file async
 
     LARGE_INTEGER file_size_prev = { 0 };
-    std::vector<char> buff;
     while (1)
     {
         LARGE_INTEGER file_size = { 0 };
@@ -56,19 +55,17 @@ void FileMonitor::WorkerThread()
         {
             file_size_prev = file_size;
             DWORD dwRead = 0;
-            //char* buff = new char[file_size.QuadPart + 1];
-            buff.resize(file_size.QuadPart + 1);
-            //ZeroMemory(buff, file_size.QuadPart + 1);
-            if (buff.capacity())
+
+            HLOCAL prev = Edit_GetHandle(_hEdit);
+            HLOCAL handle = LocalReAlloc(prev, file_size.QuadPart + 1, LMEM_MOVEABLE | LMEM_ZEROINIT);
+            if (handle)
             {
+                char* buff = (char*)LocalLock(handle);
                 SetFilePointer(_hFile, 0, NULL, FILE_BEGIN);
-                if (ReadFile(_hFile, &buff[0], file_size_prev.QuadPart, &dwRead, NULL))
+                if (ReadFile(_hFile, buff, file_size_prev.QuadPart, &dwRead, NULL))
                 {
-                    buff[file_size.QuadPart] = 0;
-                    SetWindowTextA(_hEdit, &buff[0]);
-                    //TODO if(autoscroll)
-                    int lines = Edit_GetLineCount(_hEdit);
-                    SendMessage(_hEdit, EM_LINESCROLL, 0, lines);
+                    //SetWindowTextA(_hEdit, &buff[0]);
+                    //TODO if(autoscroll) if last line is visible - scroll. If not visible do not scroll
 
                     //Apend text to edit box. Clean/Restore selection/cursor
                     //DWORD l, r;
@@ -78,6 +75,11 @@ void FileMonitor::WorkerThread()
                     //Edit_ScrollCaret(_hEdit);
                     //SendMessage(_hEdit, EM_SETSEL, l, r);
                 }
+                LocalUnlock(handle);
+                Edit_SetHandle(_hEdit, handle);
+
+                int lines = Edit_GetLineCount(_hEdit);
+                SendMessage(_hEdit, EM_LINESCROLL, 0, lines);
             }
             else
             {
