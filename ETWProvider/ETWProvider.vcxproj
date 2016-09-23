@@ -146,6 +146,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ETW.h" />
     <ClInclude Include="ETWConsumer.h" />
     <ClInclude Include="ETWController.h" />
     <ClInclude Include="ETWProvider.h" />

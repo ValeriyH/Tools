@@ -52,7 +52,7 @@ public:
     FileMonitor();
     virtual ~FileMonitor();
 
-    void StartMonitor(std::wstring filename, HWND hEdit);
+    bool StartMonitor(std::wstring filename, HWND hEdit);
     void StopMonitor();
 
     void WorkerThread();

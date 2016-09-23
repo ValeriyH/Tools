@@ -12,12 +12,19 @@ FileMonitor::~FileMonitor()
 }
 
 
-void FileMonitor::StartMonitor(std::wstring filename, HWND hEdit)
+bool FileMonitor::StartMonitor(std::wstring filename, HWND hEdit)
 {
     StopMonitor();
 
     _sFilename = filename;
     _hEdit = hEdit;
+
+    if (*_sFilename.begin() == L'"' && *(_sFilename.end() - 1) == L'"')
+    {
+        //Removing "
+        _sFilename.erase(_sFilename.end() - 1);
+        _sFilename.erase(_sFilename.begin());
+    }
 
     //TODO Use file mapping with own edit window
     //TODO Monitor file delete operation and close file
@@ -29,7 +36,22 @@ void FileMonitor::StartMonitor(std::wstring filename, HWND hEdit)
         FILE_ATTRIBUTE_NORMAL,
         (HANDLE)NULL);
 
+    if (_hFile == INVALID_HANDLE_VALUE)
+    {
+        DWORD err = GetLastError();
+        std::wstring strMessage(L"ERROR! CAN'T OPEN FILE\r\n");
+        const int MSG_SIZE = 256;
+        wchar_t buf[MSG_SIZE];
+        if (FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buf, MSG_SIZE, NULL))
+        {
+            strMessage += buf;
+        }
+        SetWindowText(_hEdit, strMessage.c_str());
+        return false;
+    }
+
     StartThread();
+    return true;
 }
 
 void FileMonitor::StopMonitor()

@@ -33,6 +33,9 @@
     <ClInclude Include="ETWController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ETW.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

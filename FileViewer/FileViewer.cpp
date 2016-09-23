@@ -14,13 +14,14 @@ FileMonitor g_FileMonitor;
 HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
+HWND hMainWnd = NULL;
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
-
+BOOL                MonitorFile(LPCWSTR filename);
 
 std::wstring OpenFileDialog(HWND hwnd)
 {
@@ -78,8 +79,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_FILEVIEWER));
 
-    MSG msg;
+    if (lpCmdLine[0] != 0)
+    {
+        MonitorFile(lpCmdLine);
+    }
 
+    MSG msg;
     // Main message loop:
     while (GetMessage(&msg, nullptr, 0, 0))
     {
@@ -146,6 +151,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
 
+   hMainWnd = hWnd;
+   RegisterHotKey(hMainWnd, IDM_EXIT, NULL, VK_ESCAPE);
    return TRUE;
 }
 
@@ -174,9 +181,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 std::wstring sFile = OpenFileDialog(hWnd);
                 if (!sFile.empty())
                 {
-                    SetWindowText(hWnd, sFile.c_str());
-                    HWND hEdit = GetDlgItem(hWnd, IDC_MAIN_EDIT);
-                    g_FileMonitor.StartMonitor(sFile.c_str(), hEdit);
+                    MonitorFile(sFile.c_str());
                 }
                 break;
             }
@@ -216,7 +221,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     //    break;
     case WM_CREATE:
     {
-        HFONT hfDefault;
+        //HFONT hfDefault;
         HWND hEdit;
 
         //TODO Create own Edit control to work with big text sizes
@@ -233,6 +238,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         //SendMessage(hEdit, WM_SETFONT, (WPARAM)hfDefault, MAKELPARAM(FALSE, 0));
     }
     break;
+    //case WM_CHAR:
+    //{
+    //    if (wParam == VK_ESCAPE)
+    //        DestroyWindow(hWnd);
+    //    else
+    //        return DefWindowProc(hWnd, message, wParam, lParam);
+    //}
+    //break;
+    case WM_HOTKEY:
+        if (wParam == IDM_EXIT)
+            DestroyWindow(hWnd);
+        break;
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
@@ -260,6 +277,21 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     }
     return (INT_PTR)FALSE;
+}
+
+BOOL MonitorFile(LPCWSTR filename)
+{
+    BOOL bRet = TRUE;
+
+    HWND hEdit = GetDlgItem(hMainWnd, IDC_MAIN_EDIT);
+    _ASSERT(hEdit);
+
+    if (g_FileMonitor.StartMonitor(filename, hEdit))
+    {
+        SetWindowText(hMainWnd, filename);
+    }
+
+    return bRet;
 }
 
 
