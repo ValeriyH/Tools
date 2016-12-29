@@ -1,0 +1,15 @@
+Hello world
+
+Scan process handles:
+https://github.com/Zer0Memory/WindowsNT-Handle-Scanner (video how works: https://www.youtube.com/watch?v=fYIx7PfMh60)
+
+
+Inject:
+http://resources.infosecinstitute.com/using-createremotethread-for-dll-injection-on-windows/#gref
+https://www.codeproject.com/Articles/4610/Three-Ways-to-Inject-Your-Code-into-Another-Proces
+
+Scan Memory:
+http://guidedhacking.com/showthread.php?5977-C-Memory-Scanner
+
+
+
