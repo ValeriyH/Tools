@@ -57,7 +57,7 @@ void ScanMemmory()
 
     //HANDLE pHandle = GetCurrentProcess(); //Use current process
 
-    int buffer_size = 0;
+    size_t buffer_size = 0;
     unsigned char* dump = NULL;
     while (aStart < aEnd) 
     {
@@ -262,14 +262,14 @@ int main(int argc, char *argv[])
     printf("1st searching %d\n", search.dw);
     ScanMemmory();
     //find_locs(pHandle, vSearch, NULL);
-    printf("Found %d items\n", addrs.size());
+    printf("Found %zd items\n", addrs.size());
 
     int key = 'n';
     do
     {
         printf("Updating list\n");
         MemoryCorrection(key == 'c');
-        printf("Found %d items\n", addrs.size());
+        printf("Found %zd items\n", addrs.size());
         if (addrs.size() < 10)
         {
             break;
