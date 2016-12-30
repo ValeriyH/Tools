@@ -256,8 +256,7 @@ int main(int argc, char *argv[])
     search.dw = dwSearch = atoi(argv[2]);
     
     printf("Opening process %d...\n", id);
-    InjectDll(id);
-    return - 1;
+    //InjectDll(id);
     if (!OpenMyProcess(id))
     {
         return 2;
