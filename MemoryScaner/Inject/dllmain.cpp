@@ -11,11 +11,11 @@ INT APIENTRY DllMain(HMODULE hDLL, DWORD Reason, LPVOID Reserved)
     std::string path = buffer;
     path += "\\temp.txt";
 
-    path = "D:\temp.txt";
+    path = "D:\\temp.txt";
 
     /* open file */
     FILE *file;
-    fopen_s(&file, path.c_str() , "a+");
+    fopen_s(&file, path.c_str(), "a+");
     switch (Reason) {
     case DLL_PROCESS_ATTACH:
         fprintf(file, "DLL attach function called.\n");
