@@ -14,6 +14,7 @@ public:
     int MemoryCorrection(DWORD value, bool equal);
     //TODO change for something like GetResults
     void ShowList();
+    void ShowModules();
 
 private:
     bool _OpenProcess(int pid);

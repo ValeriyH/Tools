@@ -24,22 +24,31 @@ wchar_t* GetLastErrorAsString(DWORD error = GetLastError())
 
 int main(int argc, char *argv[])
 {
-    //_setmode(_fileno(stdout), _O_U16TEXT);
-    if (argc < 3)
-    {
-        printf("Usage: MemoryScaner <PID> <SEARCH DWORD>\n");
-        return 1;
-    }
-
-    int res = 0;
     DWORD id = atoi(argv[1]);
     DWORD dwSearch = atoi(argv[2]);
 
+    if (argc < 3)
+    {
+        printf("Usage: MemoryScaner <PID> <SEARCH DWORD>\n");
+        printf("Enter PID: ");
+        std::cin >> id;
+        printf("Enter search: ");
+        std::cin >> dwSearch;
+        return 1;
+    }
+    else
+    {
+        id = atoi(argv[1]);
+        dwSearch = atoi(argv[2]);
+    }
+
+    int res = 0;
     MemoryMonitor monitor;
     
+    DWORD start = GetTickCount();
     printf("Searching %d process memory %d...\n", dwSearch, id);
     res = monitor.InitialScan(id, dwSearch);
-    printf("Found %d items\n", res);
+    printf("Found %d items. During %d ticks\n", res, GetTickCount() - start);
 
     do
     {
@@ -66,7 +75,8 @@ int main(int argc, char *argv[])
     {
         monitor.ShowList();
         Sleep(1000);
-        puts("");
+        puts("----");
+        //getchar();
     } while (true);
    
     return 0;
