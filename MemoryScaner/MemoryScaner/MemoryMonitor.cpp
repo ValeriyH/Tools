@@ -1,6 +1,15 @@
 #include "stdafx.h"
 #include "MemoryMonitor.h"
+#include <Psapi.h>
 #include <algorithm>
+
+
+//TODO Refactor
+//#1 Remove printf.
+//#2 Handle error in proper way (exception or ret code)
+//#3 Refactor. Internal function like _OpenProcess can throw exception. Interface function should handle this exception and return error code.
+//#4 Add memory dump (see Sandbox)
+//#5 Reuse BlockScan in FullScan
 
 //TODO Remove this global function
 extern wchar_t* GetLastErrorAsString(DWORD error = GetLastError());
@@ -20,15 +29,39 @@ void LogError(const char* msg, const char* file, int line)
 }
 #define LOGERROR(msg) LogError(msg, __FILE__, __LINE__)
 
-//TODO Refactor
-//#1 Remove printf.
-//#2 Handle error in proper way (exception or ret code)
-
-MemoryMonitor::MemoryMonitor()
+//TODO Integrate to class
+HMODULE GetExeModule(HANDLE hProcess)
 {
-    _hProcess = NULL;
+    HMODULE hMods[1024];
+    HANDLE pHandle = hProcess;
+    DWORD cbNeeded;
+    unsigned int i;
+
+    if (EnumProcessModules(pHandle, hMods, sizeof(hMods), &cbNeeded))
+    {
+        for (i = 0; i < (cbNeeded / sizeof(HMODULE)); i++)
+        {
+            TCHAR szModName[MAX_PATH];
+            if (GetModuleFileNameEx(pHandle, hMods[i], szModName, sizeof(szModName) / sizeof(TCHAR)))
+            {
+                std::wstring wstrModName = szModName;
+                //TODO it should end to .exe
+                std::wstring wstrModContain = L".exe";
+                if (wstrModName.find(wstrModContain) != std::wstring::npos)
+                {
+                    return hMods[i];
+                }
+            }
+        }
+    }
+    return NULL;
 }
 
+MemoryMonitor::MemoryMonitor(int pid)
+{
+    _hProcess = NULL;
+    _pid = pid;
+}
 
 MemoryMonitor::~MemoryMonitor()
 {
@@ -123,15 +156,12 @@ void MemoryMonitor::ShowModules()
     }
 }
 
-int MemoryMonitor::InitialScan(int pid, DWORD dwSearch)
+int MemoryMonitor::FullScan(DWORD* dwSearch, int count)
 {
-    if (!_OpenProcess(pid))
+    if (!_OpenProcess())
     {
         return -1;
      }
-
-    //TODO Remove from here
-    //ShowModules();
 
     _ASSERT(_hProcess && "Handle should be initiated here!");
     _addrs.clear();
@@ -191,15 +221,18 @@ int MemoryMonitor::InitialScan(int pid, DWORD dwSearch)
                 //Not universal but 4 time faster than BYTE*
                 DWORD* block_start = (DWORD*)dump;
                 DWORD* block_end = (DWORD*)(dump + mbi.RegionSize);
-                DWORD* token_start = &dwSearch;
-                DWORD* token_end = &dwSearch + 1;
+                DWORD* token_start = dwSearch;
+                DWORD* token_end = dwSearch + count;
                 DWORD* found = std::search(block_start, block_end, token_start, token_end);
 
                 for (; found < block_end; found = std::search(++found, block_end, token_start, token_end))
                 {
                     BYTE* addr = (BYTE*)mbi.BaseAddress + ((BYTE*)found - (BYTE*)block_start);
                     //printf("Found at 0x%p\n", (LPVOID)addr);
-                    _addrs.push_back((BYTE*)addr);
+                    MemInfo info;
+                    info.addr = addr;
+                    info.base = (BYTE*)mbi.BaseAddress;
+                    _addrs.push_back(info);
                 }
             }
         }
@@ -210,14 +243,65 @@ int MemoryMonitor::InitialScan(int pid, DWORD dwSearch)
     return _addrs.size();
 }
 
+int MemoryMonitor::BlockScan(DWORD value, PVOID start, size_t size)
+{
+    if (!_OpenProcess())
+    {
+        return -1;
+    }
+
+    _ASSERT(_hProcess && "Handle should be initiated here!");
+    _addrs.clear();
+
+    if (!size)
+    {
+        MEMORY_BASIC_INFORMATION mbi = { 0 };
+        if (!VirtualQueryEx(_hProcess, (LPCVOID)start, &mbi, sizeof(mbi)))
+        {
+            printf("MemoryScanner:Read process memory error: %ls\n", GetLastErrorAsString());
+            return -1;
+        }
+        start = mbi.BaseAddress;
+        size = mbi.RegionSize;
+    }
+
+    DWORD dwSearch = value;
+    BYTE* dump = new BYTE[size + 1];
+
+    memset(dump, 0x00, size + 1);
+    if (ReadProcessMemory(_hProcess, start, dump, size, NULL))
+    {
+        BYTE* block_start = dump;
+        BYTE* block_end = dump + size;
+        BYTE* token_start = (BYTE*)&dwSearch;
+        BYTE* token_end = (BYTE*)&dwSearch + sizeof(dwSearch);
+        while (block_start < block_end)
+        {
+            block_start = std::search(block_start, block_end, token_start, token_end);
+            if (block_start == block_end)
+            {
+                break;
+            }
+            MemInfo info;
+            info.addr = (BYTE*)start + ((BYTE*)block_start - (BYTE*)dump);
+            info.base = (BYTE*)start;
+            _addrs.push_back(info);
+            block_start++;
+        }
+    }
+
+    delete[] dump;
+    return _addrs.size();
+}
+
 int MemoryMonitor::MemoryCorrection(DWORD value, bool equal)
 {
     _ASSERT(_hProcess && "InitialScan should be called first!");
     DWORD data;
-    std::list<BYTE*> persist;
+    std::list<MemInfo> persist;
     for each (auto addr in _addrs)
     {
-        if (ReadProcessMemory(_hProcess, addr, &data, sizeof(data), NULL))
+        if (ReadProcessMemory(_hProcess, addr.addr, &data, sizeof(data), NULL))
         {
             if (equal && data == value)
             {
@@ -236,66 +320,45 @@ int MemoryMonitor::MemoryCorrection(DWORD value, bool equal)
 void MemoryMonitor::ShowList()
 {
     _ASSERT(_hProcess && "InitialScan should be called first!");
-    DWORD data;
+    DWORD data[25];
+    BYTE* appbase = NULL;
+    HMODULE Module = GetExeModule(_hProcess);
+    MODULEINFO info = { 0 };
+    if (GetModuleInformation(_hProcess, Module, &info, sizeof(info)))
+    {
+        appbase = (BYTE*)info.lpBaseOfDll;
+        printf("Application Base 0x%p\n", appbase);
+    }
+    else
+    {
+        LOGERROR("GetModuleInformation");
+        return;
+    }
+
     for each (auto addr in _addrs)
     {
-        if (ReadProcessMemory(_hProcess, addr, &data, sizeof(data), NULL))
+        if (ReadProcessMemory(_hProcess, addr.addr, &data, sizeof(data), NULL))
         {
-            printf("Addr 0x%p Data %d\n", (LPVOID)addr, data);
-            //TODO this is debug
-            MEMORY_BASIC_INFORMATION mbi = { 0 };
-            if (VirtualQueryEx(_hProcess, (LPCVOID)addr, &mbi, sizeof(mbi)))
+            printf("Addr 0x%p BlockBase 0x%p BaseOffset 0x%lx AppOffset 0x%lx\n", (LPVOID)addr.addr, addr.base, addr.addr - addr.base, addr.addr - appbase);
+            for (int i = 0; i < sizeof(data) / sizeof(DWORD); i++)
             {
-                printf("AllocationBase %p \t BaseAddress %p\n", mbi.AllocationBase, mbi.BaseAddress);
-                
-                char* dump = new char[mbi.RegionSize + 1];
-                memset(dump, 0x00, mbi.RegionSize + 1);
-                std::string file_name("dump_");
-                _itoa_s((int)mbi.BaseAddress, dump, MAX_PATH,  16);
-                file_name += dump;
-                file_name += ".bin";
-
-                FILE* file = NULL;
-                fopen_s(&file, file_name.c_str(), "r");
-                if (file == NULL)
-                {
-                    //Create if file not exists
-                    fopen_s(&file, file_name.c_str(), "w");
-                    if (file)
-                    {
-                        if (ReadProcessMemory(_hProcess, mbi.BaseAddress, dump, mbi.RegionSize, NULL))
-                        {
-                            fwrite(dump, sizeof(char), mbi.RegionSize, file);
-                        }
-                        else
-                        {
-                            LOGERROR("ReadProcessMemory");
-                        }
-                        fclose(file);
-                    }
-                    else
-                    {
-                        LOGERROR("File not created");
-                    }
-                }
-                
-                delete[] dump;
-                
+                printf("0x%x - %d\n", i * sizeof(DWORD), data[i]);
             }
             puts("");
         }
         else
         {
-            printf("Addr 0x%p Unreadable\n", (LPVOID)addr);
+            printf("Addr 0x%p Unreadable\n", (LPVOID)addr.addr);
         }
     }
 }
 
-bool MemoryMonitor::_OpenProcess(int pid)
+bool MemoryMonitor::_OpenProcess()
 {
     _CloseProcess();
-    _hProcess = OpenProcess(PROCESS_VM_OPERATION | PROCESS_VM_READ | /*PROCESS_VM_WRITE | */PROCESS_QUERY_INFORMATION, FALSE, pid); //PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_QUERY_INFORMATION
+    _hProcess = OpenProcess(PROCESS_VM_OPERATION | PROCESS_VM_READ | /*PROCESS_VM_WRITE | */PROCESS_QUERY_INFORMATION, FALSE, _pid); //PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE | PROCESS_QUERY_INFORMATION
     if (_hProcess == NULL) {
+        //TODO Throw exception 
         printf("MemoryScanner:OpenProcess error: %ls\n", GetLastErrorAsString());
         return false;
     }

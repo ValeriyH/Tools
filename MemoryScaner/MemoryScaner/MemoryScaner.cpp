@@ -24,8 +24,10 @@ wchar_t* GetLastErrorAsString(DWORD error = GetLastError())
 
 int main(int argc, char *argv[])
 {
-    DWORD id = atoi(argv[1]);
-    DWORD dwSearch = atoi(argv[2]);
+    DWORD id = 0;
+    DWORD search[MAX_PATH];
+    int count = 0;
+    DWORD base = 0;
 
     if (argc < 3)
     {
@@ -33,27 +35,49 @@ int main(int argc, char *argv[])
         printf("Enter PID: ");
         std::cin >> id;
         printf("Enter search: ");
-        std::cin >> dwSearch;
-        return 1;
+        std::cin >> search[0];
+        count = 1;
     }
     else
     {
         id = atoi(argv[1]);
-        dwSearch = atoi(argv[2]);
+        
+        printf("Search [");
+        char * pch = strtok(argv[2], " ");
+        for (int i = 0; pch && i < MAX_PATH; i++, pch = strtok(NULL, " "))
+        {
+            DWORD dw = atoi(pch);
+            printf(" %d", dw);
+            search[i] = dw;
+            count++;
+        }
+        printf(" ]\n");
+    }
+
+    if (argc > 3)
+    {
+        base = strtol(argv[3], NULL, 16);
     }
 
     int res = 0;
-    MemoryMonitor monitor;
+    MemoryMonitor monitor(id);
     
     DWORD start = GetTickCount();
-    printf("Searching %d process memory %d...\n", dwSearch, id);
-    res = monitor.InitialScan(id, dwSearch);
+    printf("Process %d. Base 0x%X\nSearching...\n", id, base);
+    if (!base)
+    {
+        res = monitor.FullScan(search, count);
+    }
+    else
+    {
+        res = monitor.BlockScan(search[0], (LPVOID)base);
+    }
     printf("Found %d items. During %d ticks\n", res, GetTickCount() - start);
 
     do
     {
-        printf("Recheking found values with %d\n", dwSearch);
-        res = monitor.MemoryCorrection(dwSearch, true);
+        printf("Recheking 1st found values with %d\n", search[0]);
+        res = monitor.MemoryCorrection(search[0], true);
         printf("Found %d items\n", res);
 
         puts("Searching will stop if found values will be less than 10");
@@ -62,12 +86,12 @@ int main(int argc, char *argv[])
             break;
         }
 
-        printf("Input new value or press Enter to rechek %d:", dwSearch);
+        printf("Input 1st new value or press Enter to rechek %d:", search[0]);
         std::string str;
         std::cin >> str;
         if (!str.empty())
         {
-            dwSearch = atoi(str.c_str());
+            search[0] = atoi(str.c_str());
         }
     } while (true);
  
@@ -76,7 +100,7 @@ int main(int argc, char *argv[])
         monitor.ShowList();
         Sleep(1000);
         puts("----");
-        //getchar();
+        getchar();
     } while (true);
    
     return 0;

@@ -22,7 +22,7 @@ void LogError(const char* msg, const char* file, int line)
         FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, NULL, error,
             MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT), buf, sizeof(buf), NULL);
     }
-    printf("\nERROR: %s. %s. at %s:%d\n", msg, buf, file, line);
+    printf("\nERROR: %s. %ls. at %s:%d\n", msg, buf, file, line);
 }
 #define LOGERROR(msg) LogError(msg, __FILE__, __LINE__)
 
@@ -238,28 +238,99 @@ void HeapScan(HANDLE hProcess, DWORD pid, DWORD value)
     CloseHandle(hHeapSnap);
 }
 
+void Dump(HANDLE hProcess, PVOID start, const char* path)
+{
+    MEMORY_BASIC_INFORMATION mbi = { 0 };
+    if (VirtualQueryEx(hProcess, (LPCVOID)start, &mbi, sizeof(mbi)))
+    {
+        printf("BaseAddress %p Size %d\n", mbi.BaseAddress, mbi.RegionSize);
+        
+        char* dump = new char[mbi.RegionSize + 1];
+        memset(dump, 0x00, mbi.RegionSize + 1);
+    
+        //Dump to file
+        FILE* file = NULL;
+        fopen_s(&file, path, "wb");
+        if (file)
+        {
+            if (ReadProcessMemory(hProcess, mbi.BaseAddress, dump, mbi.RegionSize, NULL))
+            {
+                fwrite(dump, sizeof(char), mbi.RegionSize, file);
+            }
+            else
+            {
+                LOGERROR("ReadProcessMemory");
+            }
+            fclose(file);
+        }
+        else
+        {
+            LOGERROR("File not created");
+        }
+        
+        delete[] dump;
+        
+    }
+
+}
+
 //NOTE: SendMessage work only with Foreground window (get keyboard imput)
 //If application is runs under admin, the SendMessage under user will not work
 int main()
 {
-    DWORD dwSearch;
-    printf("Enter HP: ");
-    std::cin >> dwSearch;
+    //printf("int %d\n", sizeof(int));
+    //printf("long %d\n", sizeof(long));
+    //printf("long long %d\n", sizeof(long long));
+    //printf("void* %d\n", sizeof(void*));
+    //return 0;
+
     HWND hWnd = FindWindowA(NULL, "Perfect World");
     if (hWnd)
     {
         DWORD pid;
         GetWindowThreadProcessId(hWnd, &pid);
-        //HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
-        HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
+        pid = 6196;
+        printf("PID: %d\n", pid);
+
+        //DWORD dwSearch;
+        //printf("Enter HP: ");
+        //std::cin >> dwSearch;
+        PVOID start = (PVOID)0x1C8C04EC;
+        const char* path = "d:\\Work\\Temp\\dump.bin";
+        HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
+        //Dump to file
+        #define bfz 102
+        char buff[bfz];
+        ZeroMemory(buff, bfz);
+        FILE* file = NULL;
+        fopen_s(&file, "d:\\Work\\Temp\\dump_short.bin", "wb");
+        if (file)
+        {
+            if (ReadProcessMemory(hProcess, start, buff, bfz, NULL))
+            {
+                fwrite(buff, sizeof(char), bfz, file);
+                DWORD* pdw = (DWORD*)buff;
+                for (int i = 0; i < bfz / sizeof(DWORD); i++)
+                {
+                    printf("0x%x - %d\n", i * sizeof(DWORD), *(pdw + i));
+                }
+            }
+            else
+            {
+                LOGERROR("ReadProcessMemory");
+            }
+            fclose(file);
+        }
+
+        //Dump(hProcess, start, path);
         
         //MemoryScan(hProcess, dwSearch);
-        HeapScan(hProcess, pid, dwSearch);
-        CloseHandle(hProcess);
-        return 0;
+        //HeapScan(hProcess, pid, dwSearch);
+        //CloseHandle(hProcess);
+        //return 0;
 
         //Sleep here. Because if we switch to foreground some keys can be handled (CTRL, ALT and etc)
-        Sleep(1000);
+        //Sleep(1000);
 
         HWND hCurr = GetForegroundWindow();
         SetForegroundWindow(hWnd);
