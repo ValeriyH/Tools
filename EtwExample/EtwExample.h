@@ -215,7 +215,7 @@ Remarks:
 #endif
 #endif // MCGEN_DISABLE_PROVIDER_CODE_GENERATION
 //+
-// Provider EtwExample Event Count 2
+// Provider Test-Etw-Example Event Count 2
 //+
 EXTERN_C __declspec(selectany) const GUID ETW_EXAMPLE_PROVIDER = {0xfe2625c1, 0xc10d, 0x452c, {0xb8, 0x13, 0xa8, 0x70, 0x3e, 0xa9, 0xd2, 0xba}};
 
@@ -270,12 +270,12 @@ EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR BUFFER_FREED_EVENT = {0x2,
 // Event Enablement Bits
 //
 
-EXTERN_C __declspec(selectany) DECLSPEC_CACHEALIGN ULONG EtwExampleEnableBits[1];
-EXTERN_C __declspec(selectany) const ULONGLONG EtwExampleKeywords[1] = {0x8000800000000000};
-EXTERN_C __declspec(selectany) const UCHAR EtwExampleLevels[1] = {4};
-EXTERN_C __declspec(selectany) MCGEN_TRACE_CONTEXT ETW_EXAMPLE_PROVIDER_Context = {0, 0, 0, 0, 0, 0, 0, 0, 1, EtwExampleEnableBits, EtwExampleKeywords, EtwExampleLevels};
+EXTERN_C __declspec(selectany) DECLSPEC_CACHEALIGN ULONG Test_Etw_ExampleEnableBits[1];
+EXTERN_C __declspec(selectany) const ULONGLONG Test_Etw_ExampleKeywords[1] = {0x8000800000000000};
+EXTERN_C __declspec(selectany) const UCHAR Test_Etw_ExampleLevels[1] = {4};
+EXTERN_C __declspec(selectany) MCGEN_TRACE_CONTEXT ETW_EXAMPLE_PROVIDER_Context = {0, 0, 0, 0, 0, 0, 0, 0, 1, Test_Etw_ExampleEnableBits, Test_Etw_ExampleKeywords, Test_Etw_ExampleLevels};
 
-EXTERN_C __declspec(selectany) REGHANDLE EtwExampleHandle = (REGHANDLE)0;
+EXTERN_C __declspec(selectany) REGHANDLE Test_Etw_ExampleHandle = (REGHANDLE)0;
 
 #if !defined(McGenEventRegisterUnregister)
 #define McGenEventRegisterUnregister
@@ -359,43 +359,43 @@ Remarks:
 //
 // Register with ETW Vista +
 //
-#ifndef EventRegisterEtwExample
-#define EventRegisterEtwExample() McGenEventRegister(&ETW_EXAMPLE_PROVIDER, McGenControlCallbackV2, &ETW_EXAMPLE_PROVIDER_Context, &EtwExampleHandle) 
+#ifndef EventRegisterTest_Etw_Example
+#define EventRegisterTest_Etw_Example() McGenEventRegister(&ETW_EXAMPLE_PROVIDER, McGenControlCallbackV2, &ETW_EXAMPLE_PROVIDER_Context, &Test_Etw_ExampleHandle) 
 #endif
 
 //
 // UnRegister with ETW
 //
-#ifndef EventUnregisterEtwExample
-#define EventUnregisterEtwExample() McGenEventUnregister(&EtwExampleHandle) 
+#ifndef EventUnregisterTest_Etw_Example
+#define EventUnregisterTest_Etw_Example() McGenEventUnregister(&Test_Etw_ExampleHandle) 
 #endif
 
 //
 // Enablement check macro for BUFFER_ALLOCATED_EVENT
 //
 
-#define EventEnabledBUFFER_ALLOCATED_EVENT() ((EtwExampleEnableBits[0] & 0x00000001) != 0)
+#define EventEnabledBUFFER_ALLOCATED_EVENT() ((Test_Etw_ExampleEnableBits[0] & 0x00000001) != 0)
 
 //
 // Event Macro for BUFFER_ALLOCATED_EVENT
 //
 #define EventWriteBUFFER_ALLOCATED_EVENT(BaseAddress, Length)\
         EventEnabledBUFFER_ALLOCATED_EVENT() ?\
-        Template_px(EtwExampleHandle, &BUFFER_ALLOCATED_EVENT, BaseAddress, Length)\
+        Template_px(Test_Etw_ExampleHandle, &BUFFER_ALLOCATED_EVENT, BaseAddress, Length)\
         : ERROR_SUCCESS\
 
 //
 // Enablement check macro for BUFFER_FREED_EVENT
 //
 
-#define EventEnabledBUFFER_FREED_EVENT() ((EtwExampleEnableBits[0] & 0x00000001) != 0)
+#define EventEnabledBUFFER_FREED_EVENT() ((Test_Etw_ExampleEnableBits[0] & 0x00000001) != 0)
 
 //
 // Event Macro for BUFFER_FREED_EVENT
 //
 #define EventWriteBUFFER_FREED_EVENT(BaseAddress)\
         EventEnabledBUFFER_FREED_EVENT() ?\
-        Template_p(EtwExampleHandle, &BUFFER_FREED_EVENT, BaseAddress)\
+        Template_p(Test_Etw_ExampleHandle, &BUFFER_FREED_EVENT, BaseAddress)\
         : ERROR_SUCCESS\
 
 #endif // MCGEN_DISABLE_PROVIDER_CODE_GENERATION
@@ -465,5 +465,5 @@ Template_p(
 #endif
 
 #define MSG_level_Informational              0x50000004L
-#define MSG_EtwExample_event_1_message       0xB0010001L
-#define MSG_EtwExample_event_2_message       0xB0010002L
+#define MSG_Test_Etw_Example_event_1_message 0xB0010001L
+#define MSG_Test_Etw_Example_event_2_message 0xB0010002L

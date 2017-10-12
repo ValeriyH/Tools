@@ -62,9 +62,9 @@ int wmain (int argc, wchar_t *argv[])
    BYTE * pBuffer = NULL;
 
    // Register this program with the ETW system as a provider.
-   result = EventRegisterEtwExample();  // MC.EXE generated; calls EventRegister().
+   result = EventRegisterTest_Etw_Example();  // MC.EXE generated; calls EventRegister().
 
-   EventWriteString(EtwExampleHandle, 0x4, 0x0, L"Application started");
+   EventWriteString(Test_Etw_ExampleHandle, 0x4, 0x0, L"Application started");
    wprintf (L"Press a key to exit\n");
    while (!_kbhit())
    {
@@ -76,8 +76,8 @@ int wmain (int argc, wchar_t *argv[])
 
       FreeBuffer (pBuffer);
    }
-   EventWriteString(EtwExampleHandle, 0x4, 0x0, L"Application finished");
-   result = EventUnregisterEtwExample();  // MC.EXE generated; calls EventUnregister()
+   EventWriteString(Test_Etw_ExampleHandle, 0x4, 0x0, L"Application finished");
+   result = EventUnregisterTest_Etw_Example();  // MC.EXE generated; calls EventUnregister()
 
    return (0);
 }
