@@ -92,7 +92,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <PreBuildEvent>
-      <Command>mc -um d:\Training\EtwExample\EtwExample.man -h d:\Training\EtwExample\ -z EtwExample</Command>
+      <Command>mc -um $(ProjectDir)\EtwExample.man -h $(ProjectDir) -z EtwExample</Command>
     </PreBuildEvent>
     <ClCompile>
       <Optimization>Disabled</Optimization>
