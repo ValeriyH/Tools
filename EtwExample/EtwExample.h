@@ -215,7 +215,7 @@ Remarks:
 #endif
 #endif // MCGEN_DISABLE_PROVIDER_CODE_GENERATION
 //+
-// Provider EtwExample Event Count 3
+// Provider EtwExample Event Count 2
 //+
 EXTERN_C __declspec(selectany) const GUID ETW_EXAMPLE_PROVIDER = {0xfe2625c1, 0xc10d, 0x452c, {0xb8, 0x13, 0xa8, 0x70, 0x3e, 0xa9, 0xd2, 0xba}};
 
@@ -242,8 +242,6 @@ EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR BUFFER_ALLOCATED_EVENT = {
 #define BUFFER_ALLOCATED_EVENT_value 0x1
 EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR BUFFER_FREED_EVENT = {0x2, 0x1, 0x10, 0x4, 0xb, 0x0, 0x8000800000000000};
 #define BUFFER_FREED_EVENT_value 0x2
-EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR MESSAGE = {0x3, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
-#define MESSAGE_value 0x3
 
 //
 // Note on Generate Code from Manifest Windows Vista and above
@@ -273,9 +271,9 @@ EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR MESSAGE = {0x3, 0x0, 0x0, 
 //
 
 EXTERN_C __declspec(selectany) DECLSPEC_CACHEALIGN ULONG EtwExampleEnableBits[1];
-EXTERN_C __declspec(selectany) const ULONGLONG EtwExampleKeywords[2] = {0x8000800000000000, 0x0};
-EXTERN_C __declspec(selectany) const UCHAR EtwExampleLevels[2] = {4, 0};
-EXTERN_C __declspec(selectany) MCGEN_TRACE_CONTEXT ETW_EXAMPLE_PROVIDER_Context = {0, 0, 0, 0, 0, 0, 0, 0, 2, EtwExampleEnableBits, EtwExampleKeywords, EtwExampleLevels};
+EXTERN_C __declspec(selectany) const ULONGLONG EtwExampleKeywords[1] = {0x8000800000000000};
+EXTERN_C __declspec(selectany) const UCHAR EtwExampleLevels[1] = {4};
+EXTERN_C __declspec(selectany) MCGEN_TRACE_CONTEXT ETW_EXAMPLE_PROVIDER_Context = {0, 0, 0, 0, 0, 0, 0, 0, 1, EtwExampleEnableBits, EtwExampleKeywords, EtwExampleLevels};
 
 EXTERN_C __declspec(selectany) REGHANDLE EtwExampleHandle = (REGHANDLE)0;
 
@@ -400,20 +398,6 @@ Remarks:
         Template_p(EtwExampleHandle, &BUFFER_FREED_EVENT, BaseAddress)\
         : ERROR_SUCCESS\
 
-//
-// Enablement check macro for MESSAGE
-//
-
-#define EventEnabledMESSAGE() ((EtwExampleEnableBits[0] & 0x00000002) != 0)
-
-//
-// Event Macro for MESSAGE
-//
-#define EventWriteMESSAGE()\
-        EventEnabledMESSAGE() ?\
-        TemplateEventDescriptor(EtwExampleHandle, &MESSAGE)\
-        : ERROR_SUCCESS\
-
 #endif // MCGEN_DISABLE_PROVIDER_CODE_GENERATION
 
 
@@ -471,24 +455,6 @@ Template_p(
     EventDataDescCreate(&EventData[0], &_Arg0, sizeof(PVOID)  );
 
     return EventWrite(RegHandle, Descriptor, ARGUMENT_COUNT_p, EventData);
-}
-#endif
-
-//
-//Template from manifest : (null)
-//
-#ifndef TemplateEventDescriptor_def
-#define TemplateEventDescriptor_def
-
-
-ETW_INLINE
-ULONG
-TemplateEventDescriptor(
-    _In_ REGHANDLE RegHandle,
-    _In_ PCEVENT_DESCRIPTOR Descriptor
-    )
-{
-    return EventWrite(RegHandle, Descriptor, 0, NULL);
 }
 #endif
 

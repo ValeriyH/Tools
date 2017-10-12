@@ -32,4 +32,9 @@
   <ItemGroup>
     <Text Include="Readme.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="EtwExample.man">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>
