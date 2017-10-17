@@ -32,8 +32,15 @@ private:
 
     void MonitorChanges()
     {
-        //NOTE: RegNotifyChangeKeyValue should be recalled each time when change notification received
-        RegNotifyChangeKeyValue(_hKey, FALSE, REG_NOTIFY_CHANGE_LAST_SET, _hEvent, TRUE);
+        if (_hKey && _hEvent)
+        {
+            //NOTE: RegNotifyChangeKeyValue should be recalled each time when change notification received
+            RegNotifyChangeKeyValue(_hKey, FALSE, REG_NOTIFY_CHANGE_LAST_SET, _hEvent, TRUE);
+        }
+        else
+        {
+            _tprintf(TEXT("ERROR: Handles are not valid.\n"));
+        }
     }
 
     bool Initialize(HKEY rootKey, char* subKey)
@@ -42,7 +49,7 @@ private:
         _hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
         //TODO handle errors. 
-        //TODO if fail create try open existing one. (NOTE: create can be done by admin user, open by any user)
+        //NOTE: It will create or open key. Create can be done by admin user, open by any user
         lRet = RegCreateKeyExA(rootKey, subKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_READ, NULL, &_hKey, NULL);
         RegisterWaitForSingleObject(&_hWait, _hEvent, WaitOrTimerCallback, this, INFINITE, WT_EXECUTELONGFUNCTION);
         MonitorChanges();
@@ -53,12 +60,27 @@ private:
 public:
     RegistryWait(char*  key)
     {
+        _hKey = NULL;
+        _hEvent = NULL;
+        _hWait = NULL;
         Initialize(HKEY_LOCAL_MACHINE, key);
     }
 
     ~RegistryWait()
     {
         //TODO Unregister all features
+        if (_hWait)
+        {
+            UnregisterWait(_hWait);
+            _hWait = NULL;
+        }
+
+        if (_hEvent)
+        {
+            CloseHandle(_hEvent);
+            _hEvent = NULL;
+        }
+
         if (_hKey)
         {
             RegCloseKey(_hKey);
