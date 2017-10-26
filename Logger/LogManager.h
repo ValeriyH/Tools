@@ -6,7 +6,7 @@
 class LogManager
 {
 public:
-    static bool SetLogger(const char* name);
+    static bool SetLogger(const char* name, const char* config = NULL);
     
     static void Log(int code, const char* message);
 

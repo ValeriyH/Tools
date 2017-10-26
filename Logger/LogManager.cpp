@@ -32,7 +32,7 @@ HMODULE GetCurrentModule()
     return hModule;
 }
 
-bool LogManager::SetLogger(const char * name)
+bool LogManager::SetLogger(const char * name, const char* config /* = NULL*/)
 {
     HMODULE hInstLibrary = GetCurrentModule();
     if (!hInstLibrary) return false;
@@ -47,6 +47,7 @@ bool LogManager::SetLogger(const char * name)
     if (logger_ptr)
     {
         //TODO Add locks for multithreads
+        logger_ptr->SetConfig(config);
         ILogger *tmp = _instance()._logger;
         _instance()._logger = logger_ptr;
         delete tmp;
