@@ -5,6 +5,7 @@ class ILogger
 {
 public:
     virtual void Log(int severityCode, const char* message) = 0;
+    //Config file, Regestry path, config XML and etc. By default or if not need NULL.
     virtual void SetConfig(const char* configuration) {};
     virtual ~ILogger() {};
 };
