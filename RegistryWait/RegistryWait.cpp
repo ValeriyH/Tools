@@ -68,10 +68,9 @@ public:
 
     ~RegistryWait()
     {
-        //TODO Unregister all features
         if (_hWait)
         {
-            UnregisterWait(_hWait);
+            UnregisterWaitEx(_hWait, INVALID_HANDLE_VALUE);
             _hWait = NULL;
         }
 
