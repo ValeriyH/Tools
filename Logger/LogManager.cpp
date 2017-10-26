@@ -51,6 +51,7 @@ bool LogManager::SetLogger(const char * name)
         delete tmp;
         return true;
     }
+    //TODO else try to loadlibrary <name>.dll and get ILogger there
     return false;
 }
 

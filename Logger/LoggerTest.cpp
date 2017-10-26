@@ -12,6 +12,8 @@ int main()
     {
         LogManager::Log(20, "Logger doesn't changed!");
     }
+    LogManager::SetLogger("FileLogger");
+    LogManager::Log(30, "Hello World!");
 
     return 0;
 }
