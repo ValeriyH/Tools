@@ -37,6 +37,7 @@ bool LogManager::SetLogger(const char * name)
     HMODULE hInstLibrary = GetCurrentModule();
     if (!hInstLibrary) return false;
 
+    //NOTE: Convetion. "Create<ClassName>"
     std::string strAllocFunction("Create");
     strAllocFunction += name;
 

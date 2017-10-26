@@ -5,6 +5,7 @@ class ILogger
 {
 public:
     virtual void Log(int severityCode, const char* message) = 0;
+    virtual void SetConfig(const char* configuration) {};
     virtual ~ILogger() {};
 };
 

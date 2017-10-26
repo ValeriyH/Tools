@@ -13,6 +13,7 @@ class ConsoleLogger : public ILogger
     }
 };
 
+//NOTE: Convetion. "Create<ClassName>"
 extern "C" __declspec(dllexport) ILogger *CreateConsoleLogger() { return new ConsoleLogger(); }
 
 
@@ -25,4 +26,5 @@ class FileLogger : public ILogger
     }
 };
 
+//NOTE: Convetion. "Create<ClassName>"
 extern "C" __declspec(dllexport) ILogger *CreateFileLogger() { return new FileLogger(); }
