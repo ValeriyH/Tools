@@ -34,6 +34,7 @@ HMODULE GetCurrentModule()
 
 bool LogManager::SetLogger(const char * name, const char* config /* = NULL*/)
 {
+    //NOTE GetCurrentModule can cause Deadlock in DllMain->Create logger in separate thread
     HMODULE hInstLibrary = GetCurrentModule();
     if (!hInstLibrary) return false;
 
