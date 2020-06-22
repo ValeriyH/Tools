@@ -13,10 +13,11 @@ int main(int argc, char* argv[])
 {
     if (argc < 3)
     {
-        puts("This tool check what all lines in the file are unique. All non-unique lines printed.");
-        puts("Error level\n\tset to 0 if all lines are unique.\n\tset to 1 if not all arguments is set or fail to open file.\n\tset to 2 if some lines are not unique.");
-        printf("Note: line size is limited to %d chars\n\n", MAX_LINE_SIZE);
-        printf("Note: folder should end with \\ character");
+        puts("This tool check what all lines in the file(s) are unique. All non-unique lines printed.");
+        puts("Error level\n\tset to 0 if all lines are unique.\n\tset to 1 if not all arguments is set or fail to open any file.\n\tset to 2 if some lines are not unique.");
+        printf("Note: line size is limited to %d chars\n", MAX_LINE_SIZE);
+        printf("Note: folder should end with \\ character\n");
+        printf("Note: Subfolders are not scanned\n\n");
         printf("Usage %s <folder> <filename_pattern>\n", argv[0]);
         return 1;
     }
